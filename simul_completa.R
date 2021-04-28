@@ -350,7 +350,7 @@ cat("\n\n")
 features <- data.frame(features,stringsAsFactors = T)
 
 meas <- data.frame(cbind(r2,mae))
-rownames(meas) <- tickers[tick_sel]
+rownames(meas) <- tickers[tick_sel[c(1,2)]]
 names(meas) <- c("R2","MAE")
 
 print(meas)
