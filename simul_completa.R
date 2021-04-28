@@ -166,7 +166,7 @@ tick_sel <- c(6,7,10,15,16,18,27,35,36,37)
 t0 <- Sys.time()
 
 r2 <- mae <- features <- NULL
-for (ticker in tickers[tick_sel[1,2]]) {
+for (ticker in tickers[tick_sel[c(1,2)]]) {
   # dataset de treino ----
   P <- price_stocks[,ticker]
   
