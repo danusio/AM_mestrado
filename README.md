@@ -11,4 +11,4 @@ Material da disciplina de aprendizado de máquina - Mestrado em PO ITA.
 
         `tickers[tick_sel[1,2]]`,
   
-  correspondente ao laço `for`, substituir os índices `[1,2]` pelo índice correspondente às ações que serão analisadas.
+  correspondente ao laço `for`, substituir os índices `[1,2]` pelos índices correspondentes às ações que serão analisadas.
