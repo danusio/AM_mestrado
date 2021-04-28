@@ -7,3 +7,8 @@ Material da disciplina de aprendizado de máquina - Mestrado em PO ITA.
 - geracao_dados_treino.R: consolida os dados de treino de todas as ações a serem analisadas.
 - datasets_treino.fst: arquivo .fst com os dados de treino.
 - conj_min_cor.R: encontra o conjunto de *X* ações (10, no exemplo) com a menor correlação média.
+- simul_completa.R: *script* para geração das métricas R² e MAE da previsão. Na linha 169:
+
+        `tickers[tick_sel[1,2]]`,
+  
+  correspondente ao laço `for`, substituir os índices `[1,2]` pelo índice correspondente às ações que serão analisadas.
