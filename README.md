@@ -1,5 +1,5 @@
 # AM_mestrado
-Material da disciplina de aprendizado de máquina - Mestrado em PO ITA.
+Material para o projeto da disciplina de Aprendizado de Máquina - Mestrado em PO, ITA.
 
 # DESCRIÇÃO DOS ARQUIVOS
 
