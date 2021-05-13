@@ -10,6 +10,9 @@ feats <- read.csv("Resultados_features_1a10.csv",
 meas <- read.csv("Resultados_measures1a10.csv")
 
 # Gráfico - Importância das Features ----
+# ocorrência das 5 features mais frequentes em cada uma das 9 posições de preditores selecionados.
+# A 'Importância 1' descreve a variável mais importante selecionada.
+
 plots <- list()
 for (i in 2:10) {
   df <- data.frame(table(feats[,i]))
@@ -32,6 +35,12 @@ ggpubr::ggarrange(plotlist = plots,
                   ncol = 3,nrow = 3)
 
 # Quantificação de Importância ----
+# Etapas do cálculo de importância de uma feature:
+# 1 - Determinar as features que foram selecionadas.
+# 2 - Calcular a frequência percentual de ocorrência da feature em cada posição (1 a 9)
+# 3 - Multiplicar o resultado anterior por 1, para a última posição, por 2, para a penúltima, e assim por diante.
+# 4 - Somar os resultados para cada feature.
+
 list_imp <- apply(feats[,2:10],2,table)
 
 list_imp <- lapply(list_imp, 
@@ -58,7 +67,6 @@ plot(imp,pch=16,type = "o",
      ylab = "importância")
 
 # Métricas da regressão ----
-
 sumar <- apply(meas[,-1], 2, 
                function(x) c(mean(x),sd(x)))
 rownames(sumar) <- c("média","desvpad")
