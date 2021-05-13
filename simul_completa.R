@@ -162,11 +162,12 @@ registerDoParallel(Mycluster)
 
 # processamento ----
 tick_sel <- c(6,7,10,15,16,18,27,35,36,37)
+tickers_sel <- tickers[tick_sel]
 
 t0 <- Sys.time()
 
-r2 <- mae <- features <- NULL
-for (ticker in tickers[tick_sel[c(1,2)]]) {
+r2 <- mae <- features <- predicoes <- observ <- NULL
+for (ticker in tickers_sel) {
   # dataset de treino ----
   P <- price_stocks[,ticker]
   
@@ -316,6 +317,9 @@ for (ticker in tickers[tick_sel[c(1,2)]]) {
                          predict(modelo_norm,df[i,-1])))
   }
   
+  predicoes <- cbind(predicoes,outpred)
+  observ <- cbind(observ,df$outcome[int_teste])
+  
   r2 <- c(r2,R2(outpred,df$outcome[int_teste]))
   
   residuo <- outpred-df$outcome[int_teste]
@@ -330,6 +334,9 @@ t1 <- Sys.time()
 stopCluster(Mycluster)
 registerDoSEQ()
 
+colnames(predicoes) <- paste0(tickers_sel,".pred")
+colnames(observ) <- paste0(tickers_sel,".obs")
+ 
 # exibição ----
 deltaT <- as.numeric(t1) - as.numeric(t0)
 
@@ -350,10 +357,12 @@ cat("\n\n")
 features <- data.frame(features,stringsAsFactors = T)
 
 meas <- data.frame(cbind(r2,mae))
-rownames(meas) <- tickers[tick_sel[c(1,2)]]
+rownames(meas) <- tickers_sel
 names(meas) <- c("R2","MAE")
 
 print(meas)
 
 write.csv(features,"features.csv")
 write.csv(meas,"measures.csv")
+write.csv(predicoes,"predicoes.csv")
+write.csv(observ,"observ.csv")
