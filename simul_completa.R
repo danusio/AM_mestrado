@@ -166,7 +166,7 @@ tickers_sel <- tickers[tick_sel]
 
 t0 <- Sys.time()
 
-r2 <- mae <- features <- predicoes <- observ <- NULL
+r2 <- mae <- features <- predicoes <- observ <- tempo_exec <- NULL
 for (ticker in tickers_sel) {
   # dataset de treino ----
   P <- price_stocks[,ticker]
@@ -263,6 +263,8 @@ for (ticker in tickers_sel) {
   
   outpred <- NULL
   for (i in int_teste) {
+    ini_time <- Sys.time()
+    
     # normalização
     modelo_norm <- df[1:(i-1),-1] %>% preProcess
     
@@ -315,6 +317,11 @@ for (ticker in tickers_sel) {
     outpred <- c(outpred,
                  predict(modelo_ensemb,
                          predict(modelo_norm,df[i,-1])))
+    
+    end_time <- Sys.time()
+    
+    tempo_exec <- c(tempo_exec,
+                    as.numeric(end_time) - as.numeric(ini_time))
   }
   
   predicoes <- cbind(predicoes,outpred)
@@ -366,3 +373,4 @@ write.csv(features,"features.csv")
 write.csv(meas,"measures.csv")
 write.csv(predicoes,"predicoes.csv")
 write.csv(observ,"observ.csv")
+write.csv(data.frame(time=tempo_exec),"tempo_exec.csv")
