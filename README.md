@@ -13,3 +13,5 @@ Material da disciplina de aprendizado de máquina - Mestrado em PO ITA.
         `rownames(meas) <- tickers[tick_sel[c(1,2)]]`
   
   correspondentes ao laço `for` e à nomeação de linhas da matriz com as medidas de performance, substituir os índices `[c(1,2)]` pelos índices correspondentes às ações que serão analisadas.
+
+- analise_result.R: análise das saídas de simul_completa.R (*features* mais importantes e métricas de regressão).
