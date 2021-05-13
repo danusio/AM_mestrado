@@ -1,6 +1,6 @@
 # Descrição dos Preditores
 
-- signal: sinal MCD 
+- signal: sinal MACD 
 - rsi: *Relative Strength Index* 
 - mmr: Média Móvel Rápida do preço da ação 
 - mml: Média Móvel Lenta do preço da ação 
