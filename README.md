@@ -9,3 +9,4 @@ Material para o projeto da disciplina de Aprendizado de Máquina - Mestrado em P
 - conj_min_cor.R: encontra o conjunto de *X* ações (10, no exemplo) com a menor correlação média.
 - simul_completa.R: *script* para geração das métricas R² e MAE da previsão, além de armazenar as *features* selecionadas para as predições.
 - analise_result.R: análise das saídas de simul_completa.R (*features* mais importantes e métricas de regressão).
+- arima_pred.R: predição baseada no modelo ARIMA.
