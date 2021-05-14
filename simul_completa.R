@@ -281,7 +281,7 @@ for (ticker in tickers_sel) {
     
     # modelagem
     train_list <- caretList(outcome ~ .,
-                            df_treino,
+                            df1,
                             metric = "MAE",
                             trControl = trainControl(method = "repeatedcv",
                                                      repeats = 3,
