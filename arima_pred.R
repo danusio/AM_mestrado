@@ -4,6 +4,9 @@ setwd("~/Documentos/MESTRADO - PO/APRENDIZADO DE MÁQUINA")
 
 library(magrittr)
 library(fst)
+library(TTR)
+library(doParallel)
+library(parallel)
 library(tseries)
 library(forecast)
 
@@ -160,7 +163,8 @@ int_teste <- round(seq(ini,length(datas),
 
 t0 <- Sys.time()
 
-r2 <- mae <- predicoes <- observ <- NULL
+# r2 <- mae <- 
+predicoes <- observ <- NULL
 for (i in 1:length(tickers_sel)) {
   outpred <- NULL
   for (j in int_teste) {
@@ -175,12 +179,12 @@ for (i in 1:length(tickers_sel)) {
   predicoes <- cbind(predicoes,outpred)
   observ <- cbind(observ,mat_rcc[int_teste+lag,i])
   
-  r2 <- c(r2,R2(outpred,mat_rcc[int_teste+lag,i]))
+  # r2 <- c(r2,R2(outpred,mat_rcc[int_teste+lag,i]))
   
-  residuo <- outpred-mat_rcc[int_teste+lag,i]
-  mae <- c(mae,residuo %>% abs %>% mean)
+  # residuo <- outpred-mat_rcc[int_teste+lag,i]
+  # mae <- c(mae,residuo %>% abs %>% mean)
   
-  plot(residuo %>% density,main = tickers_sel[i])
+  # plot(residuo %>% density,main = tickers_sel[i])
 }
 
 t1 <- Sys.time()
@@ -192,7 +196,7 @@ registerDoSEQ()
 colnames(predicoes) <- paste0(tickers_sel,".pred")
 colnames(observ) <- paste0(tickers_sel,".obs")
 
-names(r2) <- names(mae) <- tickers_sel
+# names(r2) <- names(mae) <- tickers_sel
 
 # exibição ----
 deltaT <- as.numeric(t1) - as.numeric(t0)
@@ -210,3 +214,6 @@ if (deltaT < 60) {
   }
 }
 cat("\n\n")
+
+write.csv(predicoes,"predicoes_arima.csv")
+write.csv(observ,"observ_arima.csv")

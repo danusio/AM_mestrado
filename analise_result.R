@@ -4,10 +4,22 @@ setwd("~/Documentos/MESTRADO - PO/APRENDIZADO DE MÁQUINA")
 
 library(magrittr)
 library(ggplot2)
+library(stringr)
 
-feats <- read.csv("Resultados_features_1a10.csv",
+# Tempo de Execução ----
+tempo <- read.csv("tempo_exec.csv",row.names = 1)
+hist(tempo$time,main = "Tempo por Iteração",
+     xlab = "tempo (s)")
+
+tempo$time %>% summary %>% print
+cat("\n")
+
+# Carregamento dos Dados ----
+feats <- read.csv("features.csv",
                   row.names = 1,stringsAsFactors = T)
-meas <- read.csv("Resultados_measures1a10.csv")
+
+pred <- read.csv("predicoes.csv",row.names = 1)
+obs <- read.csv("observ.csv",row.names = 1)
 
 # Gráfico - Importância das Features ----
 # ocorrência das 5 features mais frequentes em cada uma das 9 posições de preditores selecionados.
@@ -32,7 +44,8 @@ for (i in 2:10) {
 }
 
 ggpubr::ggarrange(plotlist = plots,
-                  ncol = 3,nrow = 3)
+                  ncol = 3,nrow = 3) %>% 
+  plot
 
 # Quantificação de Importância ----
 # Etapas do cálculo de importância de uma feature:
@@ -66,9 +79,81 @@ plot(imp,pch=16,type = "o",
      main = "Importância dos Preditores",
      ylab = "importância")
 
-# Métricas da regressão ----
-sumar <- apply(meas[,-1], 2, 
-               function(x) c(mean(x),sd(x)))
-rownames(sumar) <- c("média","desvpad")
+# Sumarização de Regressão ----
+statSummary <- function(pred,obs){
+  tickers <- strtrim(colnames(pred),5)
+  ntick <- ncol(pred)
+  
+  # Métricas da regressão ----
+  # 1. R2 e MAE
+  r2 <- mae <- NULL
+  for (i in 1:ntick) {
+    r2 <- c(r2,caret::R2(pred[,i],obs[,i]))
+    mae <- c(mae,caret::MAE(pred[,i],obs[,i]))
+  }
+  names(r2) <- names(mae) <- tickers
+  
+  # print(sumar)
+  
+  # 2. Índice de Willmott
+  willmott <- function(pred,obs) 1-sum((pred-obs)^2)/sum((abs(pred-mean(obs))+abs(obs-mean(obs))^2))
+  
+  WI <- NULL
+  for (i in 1:ntick) {
+    WI <- c(WI,willmott(pred[,i],obs[,i]))
+  }
+  
+  names(WI) <- tickers
+  
+  # cat("\nÍndices de Willmott: \n\n")
+  # print(WI)
+  
+  # 3. curtose dos desvios de predição
+  # curtose de uma curva normal é em torno de 3
+  
+  curtose <- NULL
+  for (i in 1:ntick) {
+    curtose <- c(curtose,
+                 moments::kurtosis(pred[,i]-obs[,i]))
+  }
+  
+  names(curtose) <- tickers
+  
+  # cat("\nCurtose: \n\n")
+  # print(curtose)
+  
+  # Testes estatísticos ----
+  # Todos os p-values, dos testes de Wilcoxon e F, confirmaram a hipótese nula:
+  # mediana das predições = mediana dos dados reais
+  # variância das predições = variância dos dados reais
+  # alfa = 0.05
+  
+  pval_w <- pval_F <- NULL
+  for (i in 1:ntick) {
+    testeW <- wilcox.test(pred[,i],obs[,i])
+    testeF <- var.test(pred[,i],obs[,i])
+    
+    pval_w <- c(pval_w,testeW$p.value)
+    pval_F <- c(pval_F,testeF$p.value)
+  }
+  
+  names(pval_F) <- names(pval_w) <- tickers
+  
+  # cat("\np-values do teste de Wilcoxon: \n\n")
+  # print(pval_w)
+  # cat("\np-values do teste F: \n\n")
+  # print(pval_F)
+  
+  out <- cbind(r2,mae,WI,curtose,pval_w,pval_F)
+  colnames(out) <- c("R2","MAE","WI","kurtosis","Wilcoxon","F")
+  
+  out
+}
 
-print(sumar)
+statSummary(pred,obs) %>% round(6) %>% print
+
+# Desempenho ARIMA ----
+pred_arima <- read.csv("predicoes_arima.csv",row.names = 1)
+obs_arima <- read.csv("observ_arima.csv",row.names = 1)
+
+statSummary(pred_arima,obs_arima) %>% round(6) %>% print
