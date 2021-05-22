@@ -129,7 +129,7 @@ lag <- round(lag_DC/fcs)
 
 rend_stocks <- genMatRend(price_stocks,lag_DC)
 
-tick_sel <- c(6,7,10,15,16,18,27,35,36,37)
+tick_sel <- c(6,7,10,15,16,18,26,34,35,36)
 tickers_sel <- tickers[tick_sel]
 
 mat_rcc <- rend_stocks[,tick_sel] %>% na.omit
