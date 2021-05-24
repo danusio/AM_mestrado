@@ -5,6 +5,7 @@ setwd("~/Documentos/MESTRADO - PO/APRENDIZADO DE MÁQUINA")
 library(magrittr)
 library(ggplot2)
 library(stringr)
+library(fmsb)
 
 # Tempo de Execução ----
 tempo <- read.csv("tempo_exec.csv",row.names = 1)
@@ -150,10 +151,67 @@ statSummary <- function(pred,obs){
   out
 }
 
-statSummary(pred,obs) %>% round(6) %>% print
+summary_ticker <- statSummary(pred,obs)
+
+cat("Modelo porposto:\n")
+summary_ticker %>% round(6) %>% print
+cat("\n")
+
+perf <- statSummary(pred,obs) %>% colMeans
+
+perf %>% round(6) %>% print
+cat("\n")
 
 # Desempenho ARIMA ----
 pred_arima <- read.csv("predicoes_arima.csv",row.names = 1)
 obs_arima <- read.csv("observ_arima.csv",row.names = 1)
 
+cat("ARIMA:\n")
 statSummary(pred_arima,obs_arima) %>% round(6) %>% print
+cat("\n")
+
+perf_arima <- statSummary(pred_arima,obs_arima) %>% colMeans
+perf_arima %>% round(6) %>% print
+cat("\n")
+
+# Desempenho Regressão Linear ----
+# pred_lm <- read.csv("predicoes_lm.csv",row.names = 1)
+# obs_lm <- read.csv("observ_lm.csv",row.names = 1)
+# 
+# cat("Regressão Linear:\n")
+# statSummary(pred_lm,obs_lm) %>% round(6) %>% print
+# cat("\n")
+# 
+# perf_lm <- statSummary(pred_lm,obs_lm) %>% colMeans
+# perf_lm %>% round(6) %>% print
+# cat("\n")
+
+# gráfico radar ----
+# campos: R2, MAE, WI, curtose
+
+dados <- rbind(perf[1:4],perf_arima[1:4]) %>% 
+  data.frame
+
+# Range de variação das medidas
+limits <- data.frame(R2 = c(0,1),
+                     MAE = c(0,0.5),
+                     WI = c(0,1),
+                     kurtosis = c(0,15))
+# gráfico
+radarchart(rbind(limits,dados),
+           axistype = 1,
+           pcol = c(2,1),plty = c(1,1,1),
+           title = "Comparação com ARIMA",
+           pfcol=c(rgb(0.8,0.2,0.5,0.4),
+                   rgb(0.2,0.5,0.5,0.4)),
+           axislabcol = "grey25",
+           caxislabels = c("0","25","50","75"))
+
+# limits <- data.frame(R2 = c(0.85,1),
+#                      MAE = c(0,0.05),
+#                      WI = c(0.98,1),
+#                      kurtosis = c(0,30))
+# radarchart(rbind(limits,
+#                  data.frame(summary_ticker[,1:4])),
+#            plty = c(1,1,1),
+#            title = "Comparação entre Papéis")
