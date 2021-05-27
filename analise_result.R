@@ -227,10 +227,16 @@ limits <- data.frame(R2 = c(0,1),
 # gráfico
 radarchart(rbind(limits,dados),
            axistype = 1,
-           pcol = c(2,1),plty = c(1,1,1),
+           pcol = c(2,"darkblue"),plty = c(1,1),
            title = "Comparação com ARIMA",
            pfcol=c(rgb(0.8,0.2,0.5,0.4),
                    rgb(0.2,0.5,0.5,0.4)),
            axislabcol = "grey25",
-           caxislabels = c("0","25","50","75"))
+           caxislabels = c("0","25","50","75"),
+           vlcex = 0.9,calcex = 0.85)
 
+legend(x=-3.1,y=1,box.lty = 0,
+       legend = c("ARIMA","Modelo Proposto"),
+       col = c("red","darkblue"),pch = 16,
+       # bg = "grey92",
+       lty=1)
