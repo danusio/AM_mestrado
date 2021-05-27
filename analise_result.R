@@ -22,6 +22,9 @@ feats <- read.csv("features.csv",
 pred <- read.csv("predicoes.csv",row.names = 1)
 obs <- read.csv("observ.csv",row.names = 1)
 
+ntick <- ncol(pred)
+tickers <- names(pred) %>% stringr::str_remove_all("\\.SA.pred")
+
 # Gráfico - Importância das Features ----
 # ocorrência das 5 features mais frequentes em cada uma das 9 posições de preditores selecionados.
 # A 'Importância 1' descreve a variável mais importante selecionada.
@@ -131,7 +134,7 @@ statSummary <- function(pred,obs){
   
   pval_w <- pval_F <- NULL
   for (i in 1:ntick) {
-    testeW <- wilcox.test(pred[,i],obs[,i])
+    testeW <- wilcox.test(pred[,i],obs[,i],paired = T)
     testeF <- var.test(pred[,i],obs[,i])
     
     pval_w <- c(pval_w,testeW$p.value)
@@ -186,6 +189,30 @@ cat("\n")
 # perf_lm %>% round(6) %>% print
 # cat("\n")
 
+# Testes Estatísticos ----
+pval_w <- pval_F <- NULL
+for (i in 1:ntick) {
+  desv <- abs(pred[,i] - obs[,i])
+  desv_arima <- abs(pred_arima[,i] - obs[,i])
+  
+  testeW <- wilcox.test(desv,desv_arima,
+                        alternative = "less",
+                        paired = T)
+  testeF <- var.test(desv,desv_arima,alternative = "less")
+  
+  pval_w <- c(pval_w,testeW$p.value)
+  pval_F <- c(pval_F,testeF$p.value)
+}
+
+names(pval_F) <- names(pval_w) <- tickers
+
+cat("\n---- Comparação com ARIMA ----\n")
+cat("Hipótese Alternativa: 'menor que' \n")
+cat("\np-value - Wilcoxon: \n")
+print(pval_w %>% round(6))
+cat("\np-value - teste F: \n")
+print(pval_F %>% round(6))
+
 # gráfico radar ----
 # campos: R2, MAE, WI, curtose
 
@@ -207,11 +234,3 @@ radarchart(rbind(limits,dados),
            axislabcol = "grey25",
            caxislabels = c("0","25","50","75"))
 
-# limits <- data.frame(R2 = c(0.85,1),
-#                      MAE = c(0,0.05),
-#                      WI = c(0.98,1),
-#                      kurtosis = c(0,30))
-# radarchart(rbind(limits,
-#                  data.frame(summary_ticker[,1:4])),
-#            plty = c(1,1,1),
-#            title = "Comparação entre Papéis")
