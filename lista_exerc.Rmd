@@ -1,0 +1,727 @@
+---
+title: "Lista de Exercícios"
+author: "Danusio Guimarães"
+date: "01/06/2021"
+output: bookdown::pdf_document2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,echo=FALSE}
+rm(list = ls())
+```
+
+\newpage
+
+```{r,message=F,warning=F}
+library(magrittr)
+library(tseries)
+```
+
+# Questão 1
+
+- Ruído branco:
+
+```{r}
+N <- 1e5
+
+set.seed(1)
+et <- runif(N,-1,1)
+```
+
+Média deve ser 0:
+
+```{r}
+mean(et)
+```
+
+Variância deve ser 0 para qualquer *lag* > 0 (no exemplo abaixo, *lag* = 5):
+
+```{r}
+var(et)
+cov(et[1:(N-5)],et[6:N])
+```
+
+- Processo MA:
+
+```{r}
+Yt <- 5 + et[3:N] - 0.5*et[2:(N-1)] + 0.25*et[1:(N-2)] 
+```
+
+Teste Dickey-Fuller aumentado: hipótese alternativa é a série ser estacionária.
+
+```{r}
+adf.test(Yt)
+```
+
+## Dedução da Função de Autocorrelação
+
+1. Um processo MA(2) é dado por:
+
+$$
+X_t = u_t + \theta_0 e_t + \theta_1 e_{t-1} + \theta_2 e_{t-2}
+$$
+
+2. Tendo $e_t$ média 0, a esperança de $X_t$ também é 0, o que conduz a:
+
+$$
+cov(X_t,X_{t+\tau}) = E(X_t X_{t+\tau}),
+$$
+
+já que a fómula da covariância se torna simplesmente uma média de produtos quando a média é 0. Para o presente caso, $\tau = 2$.
+
+3. Expandido a relação anterior (e tendo em vista que a esperança é igual à média):
+
+Para $\tau \le 2$:
+
+$$
+cov(X_t,X_{t+\tau}) = \sigma^2 \sum_{i=0}^{2-\tau} \theta_i \theta_{i+h}
+$$
+
+Por definição, se $\tau > 2$, a covariância é nula.
+
+4. Sabendo-se que a função de autocorrelação é dada por: 
+
+$$
+\rho_X(\tau) = \frac{cov(X_t,X_{t+\tau})}{\sqrt{var(X_t)}\sqrt{var(X_{t+\tau})}},
+$$
+
+a função de autocorrelação para um processo MA(2) é:
+
+Para $\tau \le 2$,
+
+$$
+\rho_X(\tau) = \frac{1}{\sum_{i=0}^{2} \theta_i^2}\sum_{i=0}^{2-\tau}\theta_{i}\theta_{i+\tau}
+$$
+
+Para $\tau > 2$, $\rho_X(\tau) = 0$.
+
+## Verificação da Solução
+
+Valores teóricos:
+
+- Para $\tau = 0$, $\rho_X(\tau) = 1$.
+- Para $\tau = 1$, 
+
+$$
+\rho_X(1) = \frac{1\times (-0.5) - 0.5 \times 0.25}{1^2 + (-0.5)^2 + 0.25^2} = -0.476
+$$
+
+- Para $\tau = 2$,
+
+$$
+\rho_X(2) = \frac{1\times 0.25}{1^2 + (-0.5)^2 + 0.25^2} = 0.190
+$$
+
+Valores reais:
+
+```{r}
+acf(Yt,8,plot = F)
+```
+\newpage
+
+# Questão 2
+
+- $\theta_1 = 0.5$, $\theta_2 = 0.4$
+
+```{=latex}
+\begin{align*}
+{\rho}_X(\tau) =
+\begin{cases}
+      1, & \text{se } \tau=0 \\
+      0.496, & \text{se } \tau=1 \\
+      0.284, & \text{se } \tau=2 \\
+      0, & \text{se } \tau>2
+\end{cases}
+\end{align*}
+```
+
+
+```{r}
+Yt1 <- et[3:N] + 0.5*et[2:(N-1)] + 0.4*et[1:(N-2)] 
+acf(Yt1,5)
+```
+
+- $\theta_1 = 1.2$, $\theta_2 = -0.7$
+
+```{=latex}
+\begin{align*}
+\rho_X(\tau) = 
+\begin{cases}
+      1, & \text{se}\ \tau=0 \\
+      0.123, & \text{se } \tau=1 \\
+      -0.239, & \text{se } \tau=2 \\
+      0, & \text{se } \tau>2
+\end{cases}
+\end{align*}
+```
+
+```{r}
+Yt1 <- et[3:N] + 1.2*et[2:(N-1)] - 0.7*et[1:(N-2)] 
+acf(Yt1,5)
+```
+
+- $\theta_1 = -1$, $\theta_2 = -0.6$
+
+```{=latex}
+\begin{align*}
+\rho_X(\tau) = 
+\begin{cases}
+      1, & \text{se}\ \tau=0 \\
+      -0.169, & \text{se } \tau=1 \\
+      -0.254, & \text{se } \tau=2 \\
+      0, & \text{se } \tau>2
+\end{cases}
+\end{align*}
+```
+
+```{r}
+Yt1 <- et[3:N] - 1*et[2:(N-1)] - 0.6*et[1:(N-2)] 
+acf(Yt1,5)
+```
+
+\newpage
+
+# Questão 3
+
+1. Para um MA(1), a função de correlação é (dedução conforme Questão 1):
+
+```{=latex}
+\begin{align*}
+\rho_X(\tau) = 
+\begin{cases}
+      1, & \text{se}\ \tau=0 \\
+      \frac{\theta_1}{1+\theta_1^2}, & \text{se } \tau=1 \\
+      0, & \text{se } \tau>2
+\end{cases}
+\end{align*}
+```
+
+2. Fazendo $\rho_1(\theta) = \frac{\theta}{1+\theta^2}$, o valor máximo/mínimo de $\rho_1$ é obtido para $\theta_x$ tal que:
+
+$$
+{\left. \frac{d\rho_1}{d\theta} \right |}_{\theta_x} = 0
+$$
+
+3. Expandindo a relação anterior:
+
+$$
+\frac{d\rho_1}{d\theta} = \frac{1-\theta^2}{(1+\theta^2)^2}
+$$
+
+$$
+\frac{1-\theta_x^2}{(1+\theta_x^2)^2} = 0
+$$
+
+$$
+1-\theta_x^2 = 0 \Rightarrow \theta_x = \pm 1
+$$
+
+4. Aplicando esse resultado na função $\rho_1$:
+
+- Máximo: $\theta_x = 1 \Rightarrow \rho_1(1) = 0.5$.
+- Mínimo: $\theta_x = -1 \Rightarrow \rho_1(-1) = -0.5$, c.q.d.
+
+\newpage
+
+# Questão 4
+
+Os valores para $\tau=0$ (1) e $\tau>1$ (0) não mudam, sendo necessário apenas investigar $\rho_X(1)$. Conforme já citado:
+
+$$
+\rho_1(\theta) = \frac{\theta}{1+\theta^2}
+$$
+
+Substituindo $\theta = 1/\theta$:
+
+$$
+\rho_1(1/\theta) = \frac{1/\theta}{1+1/\theta^2}
+$$
+
+Multiplicando numerador e denominador por $\theta^2$:
+
+$$
+\rho_1(1/\theta) = \frac{1/\theta . \theta^2}{\theta^2+1/\theta^2.\theta^2}
+$$
+
+$$
+\rho_1(1/\theta) = \frac{\theta}{\theta^2+1} = \rho_1(\theta),\ \  c.q.d.
+$$
+
+\newpage
+
+# Questão 5
+
+A função de autocorrelação teórica para um processo AR(1) é $\rho_X(\tau) = \phi^\tau$.
+
+```{r}
+tau = 50 # lag máximo de análise
+```
+
+- $\phi = 0.6$
+
+```{r}
+phi <- 0.6
+```
+
+```{r}
+set.seed(Sys.time())
+X <- rnorm(N)
+
+M <- NULL
+for (lag in 1:tau) {
+  X <- phi*X + rnorm(N)
+  M <- cbind(M,X)
+}
+```
+
+```{r}
+ac <- NULL
+for (i in 1:tau) {
+  ac <- c(ac,
+          cov(M[,1],M[,i])/(sqrt(var(M[,1]))*sqrt(var(M[,i]))))
+}
+```
+
+```{r}
+plot(ac,type = "o",pch=20,xlab = "lag")
+lines(phi^(0:tau),col="red")
+```
+
+- $\phi = -0.6$
+
+```{r}
+phi <- -0.6
+```
+
+```{r}
+set.seed(Sys.time())
+X <- rnorm(N)
+
+M <- NULL
+for (lag in 1:tau) {
+  X <- phi*X + rnorm(N)
+  M <- cbind(M,X)
+}
+```
+
+```{r}
+ac <- NULL
+for (i in 1:tau) {
+  ac <- c(ac,
+          cov(M[,1],M[,i])/(sqrt(var(M[,1]))*sqrt(var(M[,i]))))
+}
+```
+
+```{r}
+plot(ac,type = "o",pch=20,xlab = "lag")
+lines(phi^(0:tau),col="red")
+```
+
+- $\phi = 0.95$
+
+```{r}
+phi <- 0.95
+```
+
+```{r}
+set.seed(Sys.time())
+X <- rnorm(N)
+
+M <- NULL
+for (lag in 1:tau) {
+  X <- phi*X + rnorm(N)
+  M <- cbind(M,X)
+}
+```
+
+```{r}
+ac <- NULL
+for (i in 1:tau) {
+  ac <- c(ac,
+          cov(M[,1],M[,i])/(sqrt(var(M[,1]))*sqrt(var(M[,i]))))
+}
+```
+
+```{r}
+plot(ac,type = "o",pch=20,xlab = "lag")
+lines(phi^(0:tau),col="red")
+```
+
+- $\phi = 0.3$
+
+```{r}
+phi <- 0.3
+```
+
+```{r}
+set.seed(Sys.time())
+X <- rnorm(N)
+
+M <- NULL
+for (lag in 1:tau) {
+  X <- phi*X + rnorm(N)
+  M <- cbind(M,X)
+}
+```
+
+```{r}
+ac <- NULL
+for (i in 1:tau) {
+  ac <- c(ac,
+          cov(M[,1],M[,i])/(sqrt(var(M[,1]))*sqrt(var(M[,i]))))
+}
+```
+
+```{r}
+plot(ac,type = "o",pch=20,xlab = "lag")
+lines(phi^(0:tau),col="red")
+```
+
+\newpage
+
+# Questão 6
+
+## Construção dos processos
+
+- Construção de $Y_t$:
+
+```{r}
+set.seed(1)
+
+et <- rnorm(N)
+phi <- 0.4
+
+Y <- 0
+for (i in 1:N) {
+  Y <- c(Y,phi*tail(Y,1) + et[i])
+}
+
+Y <- Y[-1]
+```
+
+Autocovariâncias reais:
+
+```{r}
+acf(Y,5,plot = F,type = "covariance")
+```
+
+Autocovariâncias teóricas:
+
+```{r}
+(phi^(0:5)/(1-phi^2)) %>% round(4) # var(et) = 1
+```
+
+- Construção de $W_t$
+
+```{r}
+W <- diff(Y)
+```
+
+## Formulação matemática
+
+Como $Y_t$ é um processo AR(1), pode ser expresso como:
+
+$$
+Y_t = \phi Y_{t-1} + e_t
+$$
+
+Usando indução, é possível escrever $Y_t$ como:
+
+$$
+Y_t = \sum_{j=0}^\infty \phi^j e_{t-j}
+$$
+
+$Y_{t-1}$, por sua vez, é:
+
+$$
+Y_{t-1} = \sum_{j=0}^\infty \phi^j e_{t-1-j}
+$$
+
+$W_t$, por sua vez, é:
+
+$$
+W_t = Y_t - Y_{t-1}
+$$
+
+Combinando as três equações anteriores:
+
+$$
+W_{t} = e_t + \sum_{j=1}^\infty (\phi^j - \phi^{j-1}) e_{t-j}
+$$
+
+$$
+W_{t} = e_t - 
+\left( 1 - \frac{1}{\phi} \right)e_t + 
+\sum_{j=0}^\infty (\phi^j - \phi^{j-1}) e_{t-j}
+$$
+
+Rearranjando:
+
+$$
+W_{t} = \frac{e_t}{\phi} + 
+\left( 1 - \frac{1}{\phi} \right) \sum_{j=0}^\infty \phi^j e_{t-j}
+$$
+
+O somatório dessa relação não é nada senão $Y_t$:
+
+$$
+W_{t} = \frac{e_t}{\phi} + 
+\left( 1 - \frac{1}{\phi} \right) Y_t
+$$
+
+A função de covariância de $W$ é:
+
+$$
+\gamma_W(\tau) = cov(W_t,W_{t-\tau}) = \mathbb{E}[W_t W_{t-\tau}] - 
+\mathbb{E}[W_t] \mathbb{E}[W_{t-\tau}]
+$$
+
+O valor esperado de $W_{t-\tau}$, para $\tau \ge 0$, é 0:
+
+```{r}
+mean(W)
+```
+
+```{r}
+mean(W[200:20000])
+```
+
+Portanto, a equação anterior, combinada com a expressão para $W_t$ em função de $Y_t$, rende:
+
+$$
+\gamma_W(\tau) = \frac{1}{\phi^2} \mathbb{E}[e_t e_{t-\tau}] + 
+\frac{\phi-1}{\phi^2} \mathbb{E}[e_t Y_{t-\tau}] + 
+\frac{\phi-1}{\phi^2} \mathbb{E}[e_{t-\tau} Y_t] + 
+\left(\frac{\phi-1}{\phi} \right)^2 \mathbb{E}[Y_t Y_{t-\tau}]
+$$
+
+Analisemos os 4 termos dessa soma:
+
+1. $\mathbb{E}[e_t e_{t-\tau}]$ é a autocovariância do ruído branco, que deve ser 0 para $\tau > 0$ e $\sigma^2$ para para $\tau = 0$:
+
+```{r}
+acf(et,5,plot = F,type = "covariance")
+```
+
+2. $\mathbb{E}[e_t Y_{t-\tau}]$ é a covariância entre um ruído branco **posterior** ao processo $Y_t$ e o próprio processo, que deve também ser 0 para $\tau > 0$ e $\sigma^2$ para para $\tau = 0$:
+
+```{r}
+cov_eY <- NULL
+for (h in 0:5) {
+  cov_eY <- c(cov_eY,
+              mean(et[(1+h):N]*Y[1:(N-h)]))
+}
+names(cov_eY) <- 0:5
+
+print(cov_eY %>% round(5))
+```
+
+3. $\mathbb{E}[e_{t-\tau} Y_t]$ é a covariância entre um ruído branco **anterior** ao processo $Y_t$ e o próprio processo. Seu valor não é intrinsecamente nulo, já que um ruído anterior impacta uma realização posterior do processo. Investiguemos a relação entre essa covariância e o valor de $\phi$:
+
+```{r}
+f <- 0.4 # phi
+sig <- 2 # sigma
+Zt <- rnorm(N,0,sig) # ruído branco
+
+# processo estacionário
+X <- 0 
+for (i in 1:N) {
+  X <- c(X,f*tail(X,1) + Zt[i])
+}
+
+X <- X[-1]
+
+obj <- NULL # E[e(t-tau).Yt]
+for (h in 0:10) { # tau, "lag"
+  Zth <- Zt[1:(N-h) + h]
+  Zt0 <- Zt[1:(N-h)]
+  
+  Xth <- X[1:(N-h) + h]
+  Xt0 <- X[1:(N-h)]
+  
+  obj <- c(obj,mean(Zt0*Xth))
+}
+
+plot(0:10,obj,pch=16,xlab = "tau",ylab = "E[e(t-tau).Yt]")
+```
+
+O valor da covariância não é nada senão $\phi^\tau \sigma^2$, que é semelhante à $cov(Y_{t},Y_{\tau-h})$, exceto pelo denominador $1-\phi^2$. De fato: 
+
+```{r}
+plot(0:10,obj,pch=16,xlab = "tau",ylab = "E[e(t-tau).Yt]")
+lines(0:10,f^(0:10)*sig^2,col="red")
+```
+
+Portanto:
+
+$$
+\mathbb{E}[e_{t-\tau} Y_t] = \phi^\tau \sigma^2 = (1- \phi^2)\gamma_Y(\tau)
+$$
+
+4. $\mathbb{E}[Y_t Y_{t-\tau}]$ é a própria função de autocovariância de $Y_t$:
+
+$$
+\mathbb{E}[Y_t Y_{t-\tau}] = \gamma_Y(\tau)
+$$
+
+Assim, a função de autocovariância de $W_t$ pode ser reescrita, para $\tau>0$, como:
+
+$$
+\gamma_W(\tau) = \frac{\phi-1}{\phi^2} (1 - \phi^2)\gamma_Y(\tau) + 
+\left(\frac{\phi-1}{\phi} \right)^2 \gamma_Y(\tau)
+$$
+
+$$
+\gamma_W(\tau) = -\gamma_Y(\tau) \frac{(\phi-1)^2}{\phi} 
+$$
+
+Explicitando $\gamma_Y(\tau)$:
+
+$$
+\gamma_W(\tau) = -\frac{\phi^\tau}{1-\phi^2} \frac{(\phi-1)^2}{\phi} \sigma^2
+$$
+
+## Item a)
+
+Assim, para $\tau>0$:
+
+$$
+\gamma_W(\tau) = \frac{\phi^{\tau-1} (\phi-1)}{\phi+1} \sigma^2
+$$
+
+## Item b)
+
+- Autocovariâncias teóricas:
+
+A expressão acima só é válida para $\tau > 0$, pois $\mathbb{E}[e_t e_{t-\tau}]$ e $\mathbb{E}[e_t Y_{t-\tau}]$ possuem os valores $\sigma^2$ para $\tau=0$ e $0$ para $\tau > 0$. Dessa forma, na soma de 4 termos para a autocovariância de $W_t$, os dois primeiros termos **não zeram** para $\tau=0$:
+
+$$
+\gamma_W(0) = \frac{1}{\phi^2}\sigma^2 + 
+\frac{\phi-1}{\phi^2}\sigma^2 + 
+\frac{\phi^{-1} (\phi-1)}{\phi+1} \sigma^2
+$$
+
+$$
+\gamma_W(0) = \left[\frac{1}{\phi} +
+\frac{(1-\phi^{-1})}{\phi+1} \right] \sigma^2
+$$
+
+$$
+\gamma_W(0) = \left[\frac{2 \phi}{\phi (\phi+1)} \right] \sigma^2 = \frac{2 \sigma^2}{\phi+1}
+$$
+
+\newpage
+
+# Questão 7
+
+\newpage
+
+# Questão 8
+
+Para o processo AR(2) $Y_t = \phi_1 Y_{t-1} + \phi_2 Y_{t-2} + e_t$ ser estacionário, o valor absoluto de qualquer das raízes do polinômio característico $C(z)$ tem que ser maior que a unidade, sendo:
+
+$$
+C(z) = 1 - \phi_1 z - \phi_2 z^2
+$$
+
+No presente caso, $\phi_1 = 0$, o que rende as soluções $z^* = \pm \sqrt{1/ \phi_2}$. Como o módulo dessas soluções deve ser maior que 1,
+temos as seguintes desigualdades:
+
+1. $1/\phi_2 > 1$; e
+2. $1/\phi_2 < -1$.
+
+De uma forma geral, o processo AR(2) é estacionário se:
+
+1. $|\phi_2| < 1$; e
+2. $|\phi_1| + \phi_2 < 1$,
+
+o que é consistente o caso particular acima. Portanto, o processo em questão é estacionário se:
+
+$-1 < \phi_2 < 1$
+
+\newpage
+
+# Questão 9
+
+Um modelo ARMA(2,1) pode ser escrito na forma compacta:
+
+$$
+Y_t + \phi_1 Y_{t-1} = e_t + \theta_1 e_{t-1} + \theta_2 e_{t-2}
+$$
+
+Multiplicando ambos os lados por $Y_{t-\tau}$:
+
+$$
+Y_tY_{t-\tau} + \phi_1 Y_{t-1}Y_{t-\tau} = e_tY_{t-\tau} + \theta_1 e_{t-1}Y_{t-\tau} + \theta_2 e_{t-2}Y_{t-\tau}
+$$
+
+Aplicando o valor esperando:
+
+$$
+\mathbb{E}[Y_tY_{t-\tau}] + \phi_1 \mathbb{E}[Y_{t-1}Y_{t-\tau}] = \mathbb{E}[e_tY_{t-\tau}] + \theta_1 \mathbb{E}[e_{t-1}Y_{t-\tau}] + \theta_2 \mathbb{E}[e_{t-2}Y_{t-\tau}]
+$$
+
+Há dois casos para dividir a expansão da expressão acima: $\tau<3$ ($max(p,q+1)$) e $\tau \ge 3$:
+
+1. $\tau<3$
+
+$$
+\gamma_Y(0) - \phi_1 \gamma_Y(1) = \sigma^2 \sum_{j=0}^2 \theta_j \psi_j
+$$
+
+$$
+\gamma_Y(1) - \phi_1 \gamma_Y(0) = \sigma^2 \sum_{j=1}^2 \theta_j \psi_{j-1}
+$$
+
+$$
+\gamma_Y(2) - \phi_1 \gamma_Y(1) = \sigma^2 \theta_2 \psi_0
+$$
+
+2. $\tau \ge 3$ 
+
+$$
+\gamma_Y(\tau) - \phi_1 \gamma_Y(\tau-1) = 0
+$$
+
+$\psi_j$ é o j-ésimo termo do polinômio $\Psi(z)$ definido por:
+
+$$
+\Psi(z) = \frac{\Theta(z)}{\Phi(z)},\ \ |z| < 1.
+$$
+
+## Item a)
+
+A expressão que se deseja provar pode ser reescrita como:
+
+$$
+\frac{\gamma(\tau)}{\gamma(\tau-1)} = 0.8,
+$$
+
+já que a função de autocorrelação é obtida a partir da autocovariância dividindo-a pela variância do processo ($\gamma(0)$). Das equações para $\tau \ge 3$, temos:
+
+$$
+\frac{\gamma(\tau)}{\gamma(\tau-1)} = \phi_1
+$$
+
+Portanto, a razão entre os valores de autocorrelação entre dois *lags* consecutivos é o coeficiente $\phi_1$ do processo; no presente caso, 0,8.
+
+## Item b)
+
+Multiplicando a expressão por $\gamma(0)$:
+
+$$
+\gamma(2) = 0.8 \gamma(1) + 0.6 \sigma^2
+$$
+
+Olhando a expansão dos valores esperados para $\tau=2$, a correspondência é direta:
+
+$$
+\gamma_Y(2) = \phi_1 \gamma_Y(1) + \sigma^2 \theta_2 \psi_0
+$$
+
+$\psi_0$ é sempre igual a $\theta_0/\phi_0$, já que não existem outros termos multiplicando $z^0$ em $\Phi(z)$ (lembrando da expressão $\Psi(z) = \Theta(z)/\Phi(z)$, o polinômio $\Psi$ multiplica o polinômio $\Phi$). No presente caso, $\psi_0$ = 1.
+
+Dessa forma, $\phi_1 = 0.8$ multiplica $\gamma(1)$ e $\theta_2 \psi_0 = 0.6$ multplica a variância do ruído branco $\sigma^2$.
